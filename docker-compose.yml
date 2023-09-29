@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Laravel API try Kariba pain 
+  laravel-app:
+    build:
+      context: ./backend
+      dockerfile: laravel.Dockerfile
+    container_name: laravel-app  # Correct placement
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql-db
+    networks:
+      - app-network
+
+  # React App
+  react-app:
+    build:
+      context: ./frontend
+      dockerfile: react.Dockerfile
+    container_name: react-app  # Correct placement
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - laravel-app
+    networks:
+      - app-network
+
+  # mu environment dynamic set karichi dockerfile dekh
+  mysql-db:
+    build:
+      context: .
+      dockerfile: mysql.Dockerfile
+    container_name: mysql-db
+    # environment:
+    #   MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+
+  # PHPMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: billing_phpmyadmin  # Correct placement
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql-db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
